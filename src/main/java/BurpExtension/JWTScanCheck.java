@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static burp.api.montoya.scanner.AuditResult.auditResult;
 import static burp.api.montoya.core.ByteArray.byteArray;
 import static burp.api.montoya.scanner.ConsolidationAction.KEEP_BOTH;
 import static burp.api.montoya.scanner.ConsolidationAction.KEEP_EXISTING;
@@ -55,13 +56,13 @@ class JWTScanCheck implements ScanCheck
             api.logging().logToError("No JWT found.");
         }
 
-        HttpRequest checkRequestNoSig = auditInsertionPoint.buildHttpRequestWithPayload(byteArray(jwtModifier.removeSignature(origJwt)));
+        HttpRequest checkRequestNoSig = auditInsertionPoint.buildHttpRequestWithPayload(byteArray(jwtModifier.removeSignature(origJwt))).withService(baseRequestResponse.httpService());
         HttpRequestResponse checkRequestResponseNoSig = api.http().sendRequest(checkRequestNoSig);
         if (checkRequestResponseNoSig.response().statusCode() == 200){
             api.siteMap().add(JwtAuditIssues.withoutSignature(baseRequestResponse.request().url(), checkRequestResponseNoSig));
         }
 
-        HttpRequest checkRequestSig = auditInsertionPoint.buildHttpRequestWithPayload(byteArray(jwtModifier.wrongSignature(origJwt)));
+        HttpRequest checkRequestSig = auditInsertionPoint.buildHttpRequestWithPayload(byteArray(jwtModifier.wrongSignature(origJwt))).withService(baseRequestResponse.httpService());
         HttpRequestResponse checkRequestResponseSig = api.http().sendRequest(checkRequestSig);
         if (checkRequestResponseSig.response().statusCode() == 200){
             api.siteMap().add(JwtAuditIssues.invalidSignature(baseRequestResponse.request().url(), checkRequestResponseSig));
@@ -70,38 +71,38 @@ class JWTScanCheck implements ScanCheck
         this.permute("none", "");
 
         for(int i = 0; i< algoList.size(); i++) {
-            HttpRequest checkRequestNone = auditInsertionPoint.buildHttpRequestWithPayload(byteArray(jwtModifier.algNone(origJwt, algoList.get(i))));
+            HttpRequest checkRequestNone = auditInsertionPoint.buildHttpRequestWithPayload(byteArray(jwtModifier.algNone(origJwt, algoList.get(i)))).withService(baseRequestResponse.httpService());
             HttpRequestResponse checkRequestResponseNone = api.http().sendRequest(checkRequestNone);
             if (checkRequestResponseNone.response().statusCode() == 200) {
                 api.siteMap().add(JwtAuditIssues.getAlgNone(baseRequestResponse.request().url(), checkRequestResponseNone));
             }
         }
 
-        HttpRequest checkRequestEmpty = auditInsertionPoint.buildHttpRequestWithPayload(byteArray(jwtModifier.emptyPassword(origJwt)));
+        HttpRequest checkRequestEmpty = auditInsertionPoint.buildHttpRequestWithPayload(byteArray(jwtModifier.emptyPassword(origJwt))).withService(baseRequestResponse.httpService());
         HttpRequestResponse checkRequestResponseEmpty = api.http().sendRequest(checkRequestEmpty);
         if (checkRequestResponseEmpty.response().statusCode() == 200){
             api.siteMap().add(JwtAuditIssues.emptyPassword(baseRequestResponse.request().url(), checkRequestResponseEmpty));
         }
 
-        HttpRequest checkRequestEcdsa = auditInsertionPoint.buildHttpRequestWithPayload(byteArray(jwtModifier.invalidEcdsa(origJwt)));
+        HttpRequest checkRequestEcdsa = auditInsertionPoint.buildHttpRequestWithPayload(byteArray(jwtModifier.invalidEcdsa(origJwt))).withService(baseRequestResponse.httpService());
         HttpRequestResponse checkRequestResponseEcdsa = api.http().sendRequest(checkRequestEcdsa);
         if (checkRequestResponseEcdsa.response().statusCode() == 200){
             api.siteMap().add(JwtAuditIssues.invalidEcdsa(baseRequestResponse.request().url(), checkRequestResponseEcdsa));
         }
 
-        HttpRequest checkRequestJwks = auditInsertionPoint.buildHttpRequestWithPayload(byteArray(jwtModifier.jwksInjection(origJwt)));
+        HttpRequest checkRequestJwks = auditInsertionPoint.buildHttpRequestWithPayload(byteArray(jwtModifier.jwksInjection(origJwt))).withService(baseRequestResponse.httpService());
         HttpRequestResponse checkRequestResponseJwks = api.http().sendRequest(checkRequestJwks);
         if (checkRequestResponseJwks.response().statusCode() == 200){
             api.siteMap().add(JwtAuditIssues.jwksInjection(baseRequestResponse.request().url(), checkRequestResponseJwks));
         }
 
-        return null;
+        return auditResult();
     }
 
     @Override
     public AuditResult passiveAudit(HttpRequestResponse baseRequestResponse)
     {
-        return null;
+        return auditResult();
     }
 
     @Override
