@@ -1,11 +1,51 @@
-<p>JWT Scanner is a Burp Suite extension for automated testing of JSON Web Token (JWT) implementations of web applications. </p>
+<p>JWT Scanner is a Burp Suite extension designed for the automated testing of JSON Web Token (JWT) implementations in web applications.</p>
 
-<p>JWT Scanner performs the following checks:</p>
+<h2>Features</h2>
 <ul>
-    <li>Signature presence</li>
-    <li>Invalid signatures</li>
-    <li>Signatures with empty passwords</li>
-    <li>Usage of algorithm none variations</li>
-    <li>Invalid ECDSA parameters (CVE-2022-21449)</li>
-    <li>JWT JWK injection</li>
+    <li>Automatically detects JWTs in requests.</li>
+    <li>Allows manual selection of target JWTs.</li>
+    <li>Supports forging public keys with two different JWTs.</li>
+    <li>Checks for various vulnerabilities, including:
+        <ul>
+            <li>Missing or invalid signatures.</li>
+            <li>Expired JWTs or those without expiry.</li>
+            <li>Vulnerabilities related to "none" algorithm, CVE-2022-21449, and public key injection.</li>
+            <li>Exposed public keys and algorithm confusion.</li>
+            <li>Status code 500 alerts for potential issues.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>Usage</h2>
+<p>Run an active scan or manually select a request to check:</p>
+<ul>
+    <li>Go to Proxy/Repeater/Target/Logger/Intruder</li>
+    <li>Select a request that requires authentication with a valid JWT and returns a HTTP 200 response.</li>
+</ul>
+    
+<p>Automatically detect JWT:</p>
+<ul>
+    <li>Right-click on the request you want to check.</li>
+    <li>Select Extension -&gt; JWT Scanner -&gt; Scan (autodetect).</li>
+    <li>If a vulnerability is identified, an issue is generated.</li>
+</ul>
+    
+<p>Manually select JWT:</p>
+<ul>
+    <li>Highlight the target JWT in the request.</li>
+    <li>Right-click the highlighted JWT request.</li>
+    <li>Select Extension -&gt; JWT Scanner -&gt; Scan selected.</li>
+    <li>If a vulnerability is identified, an issue is generated.</li>
+</ul>
+    
+<p>Forging public keys:</p>
+<ul>
+    <li>If a public key is not exposed, you can try forging one:</li>
+    <ul>
+        <li>Select two base requests, each containing one different JWT.</li>
+        <li>Right-click the highlighted JWT requests.</li>
+        <li>Select Extension -&gt; JWT Scanner -&gt; Forge public key.</li>
+    </ul>
+    <li>Investigate the Event and Issue log.</li>
+    <li>If successful, rerun "Scan (autodetect)" or "Scan selected".</li>
 </ul>
