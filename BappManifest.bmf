@@ -3,7 +3,7 @@ ExtensionType: 1
 Name: JWT Scanner
 RepoName: jwt-scanner
 ScreenVersion: 2.1.0
-SerialVersion: 1
+SerialVersion: 2
 MinPlatformVersion: 12
 ProOnly: True
 Author: Dario Caluzi, Cyrill Bannwart, Tobias Hort-Giess
