@@ -26,9 +26,11 @@ public class CheckExpiredJwtAccepted extends Check {
             jwt.getExp().ifPresent(exp -> {
                 var now = System.currentTimeMillis() / 1000;
                 var left = exp.longValue() - now;
+                var runAt = left + 60;
                 executor.schedule(
                         () -> new CheckExpiredJwtAccepted().perform(baseRequestResponse, auditInsertionPoint).ifPresent(JwtScannerExtension.api().siteMap()::add),
-                        left + 60, TimeUnit.SECONDS);
+                        runAt, TimeUnit.SECONDS);
+                JwtScannerExtension.logging().raiseInfoEvent("Checking whether an expired token is accepted in %d seconds".formatted(runAt));
             });
             return Optional.empty();
         }
