@@ -86,7 +86,7 @@ public class Sign2n {
                 JwtScannerExtension.logging().logToError(exc);
                 throw new RuntimeException(exc);
             }
-        });
+        }, JwtScannerExtension.executor());
     }
 
     private static String hashPad(int sizeBytes, byte[] data, String hashAlgorithm) {
