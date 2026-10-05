@@ -8,13 +8,10 @@ import ch.csnc.burp.jwtscanner.JwtAuditIssues;
 import ch.csnc.burp.jwtscanner.JwtScannerExtension;
 
 import java.util.Optional;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class CheckExpiredJwtAccepted extends Check {
-
-    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
     @Override
     protected Optional<AuditIssue> doPerform(HttpRequestResponse baseRequestResponse, AuditInsertionPoint auditInsertionPoint) {
@@ -26,9 +23,13 @@ public class CheckExpiredJwtAccepted extends Check {
             jwt.getExp().ifPresent(exp -> {
                 var now = System.currentTimeMillis() / 1000;
                 var left = exp.longValue() - now;
-                executor.schedule(
-                        () -> new CheckExpiredJwtAccepted().perform(baseRequestResponse, auditInsertionPoint).ifPresent(JwtScannerExtension.api().siteMap()::add),
-                        left + 60, TimeUnit.SECONDS);
+                var runAt = left + 60;
+                CompletableFuture
+                        .delayedExecutor(runAt, TimeUnit.SECONDS, JwtScannerExtension.executor())
+                        .execute(() -> new CheckExpiredJwtAccepted()
+                                .perform(baseRequestResponse, auditInsertionPoint)
+                                .ifPresent(JwtScannerExtension.api().siteMap()::add));
+                JwtScannerExtension.logging().raiseInfoEvent("Checking whether an expired token is accepted in %d seconds".formatted(runAt));
             });
             return Optional.empty();
         }
