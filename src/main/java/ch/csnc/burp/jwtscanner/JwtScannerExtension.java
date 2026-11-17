@@ -1,10 +1,14 @@
 package ch.csnc.burp.jwtscanner;
 
 import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.extension.ExtensionUnloadingHandler;
 import burp.api.montoya.scanner.scancheck.ScanCheckType;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static java.util.Objects.requireNonNull;
 
@@ -14,6 +18,7 @@ public class JwtScannerExtension implements burp.api.montoya.BurpExtension {
     private static Logging logging = new Logging();
     private static Storage storage = new Storage();
     private static Settings settings = new Settings();
+    private static ExecutorService executor = Executors.newFixedThreadPool(4);
 
     public static MontoyaApi api() {
         return api;
@@ -31,6 +36,10 @@ public class JwtScannerExtension implements burp.api.montoya.BurpExtension {
         return settings;
     }
 
+    public static Executor executor() {
+        return executor;
+    }
+
     @Override
     public void initialize(MontoyaApi api) {
         JwtScannerExtension.api = api;
@@ -42,6 +51,9 @@ public class JwtScannerExtension implements burp.api.montoya.BurpExtension {
         api.scanner().registerInsertionPointProvider(new JwtInsertionPointProvider());
         api.scanner().registerActiveScanCheck(new JwtScanCheck(), ScanCheckType.PER_INSERTION_POINT);
         api.http().registerHttpHandler(new CommentHttpHandler());
+        api.extension().registerUnloadingHandler(() -> {
+            JwtScannerExtension.executor.shutdownNow();
+        });
 
         var versionTxt = "/version.txt";
         try (var stream = getClass().getResourceAsStream(versionTxt)) {
@@ -52,4 +64,5 @@ public class JwtScannerExtension implements burp.api.montoya.BurpExtension {
             JwtScannerExtension.logging().logToError(exc);
         }
     }
+
 }

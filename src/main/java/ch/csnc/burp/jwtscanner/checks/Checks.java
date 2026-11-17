@@ -3,6 +3,7 @@ package ch.csnc.burp.jwtscanner.checks;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.scanner.audit.insertionpoint.AuditInsertionPoint;
 import burp.api.montoya.scanner.audit.issues.AuditIssue;
+import ch.csnc.burp.jwtscanner.JwtScannerExtension;
 
 import java.util.function.Consumer;
 
@@ -13,6 +14,10 @@ import java.util.function.Consumer;
 public abstract class Checks {
 
     public static void performAll(HttpRequestResponse baseRequestResponse, AuditInsertionPoint auditInsertionPoint, Consumer<AuditIssue> auditIssueConsumer) {
+        if (baseRequestResponse.response() == null) {
+            JwtScannerExtension.logging().raiseErrorEvent("All checks are skipped, because the provided HttpRequestResponse has no response.");
+            return;
+        }
         new CheckJwtExists().perform(baseRequestResponse, auditInsertionPoint).ifPresent(jwtExistsIssue -> {
             auditIssueConsumer.accept(jwtExistsIssue);
             // Further checks only make sense if the JWT exists.

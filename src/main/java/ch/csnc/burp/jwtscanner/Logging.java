@@ -54,4 +54,11 @@ public class Logging {
         }
     }
 
+    public void raiseDebugEvent(String message) {
+        if (this.api != null) {
+            this.api.logging().raiseDebugEvent(message);
+        } else {
+            System.out.println(message);
+        }
+    }
 }
